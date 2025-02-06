@@ -1,3 +1,9 @@
+﻿#VERSION AVEC SORTIES SUR TOUS LES MURS
+
+
+#MODIFS : PLUS DE CASE DE DEPART AU 0, 0 MTN CEST 1, 0 AU MOINS
+#MODIFS : IL Y A MTN DES SORTIES SUR LES COTES OUEST ET NORD
+
 import random
 import os
 
@@ -48,24 +54,40 @@ class Maze:
     def cell_at(self, x, y):
         """Retourne la cellule située aux coordonnées (x, y)."""
         return self.maze_map[x][y]
-    
+
     def open_exit(self):
         """Ouvre une sortie aléatoire sur l'un des quatre bords du labyrinthe."""
         # Choisir un côté au hasard
         side = random.choice(['N', 'S', 'E', 'W'])
-
+        cordx = 0
+        cordy = 0
+        
         if side == 'N':  # Sortie au nord
-            x = random.randint(0, self.nx - 1)
+            x = random.randint(1, self.nx - 1)
             self.cell_at(x, 0).walls['N'] = False  # Ouvrir le mur du nord pour une cellule sur le bord nord
+            cordx = x
+            cordy = 0
         elif side == 'S':  # Sortie au sud
             x = random.randint(0, self.nx - 1)
             self.cell_at(x, self.ny - 1).walls['S'] = False  # Ouvrir le mur du sud pour une cellule sur le bord sud
+            cordx = x
+            cordy = self.ny - 1
         elif side == 'E':  # Sortie à l'est
             y = random.randint(0, self.ny - 1)
             self.cell_at(self.nx - 1, y).walls['E'] = False  # Ouvrir le mur de l'est pour une cellule sur le bord est
+            cordx = self.nx - 1
+            cordy = y
         elif side == 'W':  # Sortie à l'ouest
             y = random.randint(0, self.ny - 1)
             self.cell_at(0, y).walls['W'] = False  # Ouvrir le mur de l'ouest pour une cellule sur le bord ouest
+            cordx = 0
+            cordy = y
+        
+
+        self.exitx=cordx
+        self.exity=cordy
+        return cordx, cordy
+
 
     def __str__(self):
         """Retourne une représentation textuelle simplifiée du labyrinthe."""
@@ -98,6 +120,7 @@ class Maze:
         width = int(height * aspect_ratio)  # Largeur calculée en fonction du ratio.
         scy, scx = height / self.ny, width / self.nx  # Facteurs de mise à l'échelle.
 
+
         def write_wall(f, x1, y1, x2, y2):
             """Écrit une ligne représentant un mur dans le fichier SVG."""
             print('<line x1="{}" y1="{}" x2="{}" y2="{}"/>'.format(x1, y1, x2, y2), file=f)
@@ -116,12 +139,19 @@ class Maze:
             print('    stroke-width: 5;\n}', file=f)
             print(']]></style>\n</defs>', file=f)
 
-             # Dessiner la cellule de départ (en rouge) à la position (ix, iy)
+            # Dessiner la cellule de départ en rouge à la position ix, iy
             start_x = self.ix * scx
             start_y = self.iy * scy
-            # Dessiner un petit carré rouge à la position de départ
             print('<rect x="{}" y="{}" width="{}" height="{}" fill="red"/>'.format(
                 start_x, start_y, scx, scy), file=f)
+
+            # Dessiner la cellule d'arrivée en vert à la position exitx, exity
+            endx = self.exitx * scx
+            endy = self.exity *scy
+            print('<rect x="{}" y="{}" width="{}" height="{}" fill="green"/>'.format(
+            endx, endy, scx, scy, fill="green"), file=f)
+
+
 
             # Dessin des murs sud et est.
             for x in range(self.nx):
@@ -132,11 +162,24 @@ class Maze:
                     if self.cell_at(x, y).walls['E']:
                         x1, y1, x2, y2 = (x + 1) * scx, y * scy, (x + 1) * scx, (y + 1) * scy
                         write_wall(f, x1, y1, x2, y2)
+                        
+                    if self.cell_at(x, y).walls['W']:
+                        x1, y1, x2, y2 = x *scx, y *scy, x * scx, (y + 1) * scy
+                        write_wall(f, x1, y1, x2, y2)
+                    
+                    if self.cell_at(x, y).walls['N']:
+                        x1, y1, x2, y2 = x * scx, y * scy, (x + 1) * scx, y *scy
+                        write_wall(f, x1, y1, x2, y2)
 
+
+            # ce programme pour les murs N et W ne marchent pas avec la sortie
             # Ajout des murs nord et ouest du bord du labyrinthe.
-            print('<line x1="0" y1="0" x2="{}" y2="0"/>'.format(width), file=f)
-            print('<line x1="0" y1="0" x2="0" y2="{}"/>'.format(height), file=f)
-            print('</svg>', file=f)
+            #print('<line x1="0" y1="0" x2="{}" y2="0"/>'.format(width), file=f)
+            #print('<line x1="0" y1="0" x2="0" y2="{}"/>'.format(height), file=f)
+            #print('</svg>', file=f)
+
+
+
 
     def find_valid_neighbours(self, cell):
         """Trouve les voisins non visités de la cellule donnée."""
@@ -171,6 +214,12 @@ class Maze:
             cell_stack.append(current_cell)
             current_cell = next_cell
             nv += 1
+            
+            
+    def find_exit(self):
+        liste_cases = []
+        
+        # proceder par éliminations!!!
 
 from df_maze import Maze
 
@@ -182,8 +231,10 @@ ix, iy = 0, 0
 maze = Maze(nx, ny, ix, iy)
 maze.make_maze()
 
-# Ouvrir une sortie aléatoire
-maze.open_exit()
+
+cox, coy = maze.open_exit()
+print(cox, coy)
+
 
 print(maze)
 
@@ -192,3 +243,7 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 print("Répertoire courant :", os.getcwd())
 
 maze.write_svg('maze.svg')
+
+
+
+
