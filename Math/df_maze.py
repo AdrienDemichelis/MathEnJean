@@ -1,7 +1,7 @@
-﻿#VERSION AVEC SORTIES SUR TOUS LES MURS
+#VERSION AVEC SORTIES SUR TOUS LES MURS
 
 
-#MODIFS : PLUS DE CASE DE DEPART AU 0, 0 MTN CEST 1, 0 AU MOINS
+#MODIFS : PLUS DE CASE DE DEPART AU 0, 0 MTN CEST 1, 0 OU 0, 1 AU MOINS
 #MODIFS : IL Y A MTN DES SORTIES SUR LES COTES OUEST ET NORD
 
 import random
@@ -26,6 +26,18 @@ class Cell:
         """Initialise une cellule à la position (x, y). Par défaut, tous ses murs sont présents."""
         self.x, self.y = x, y
         self.walls = {'N': True, 'S': True, 'E': True, 'W': True}  # Toutes les directions ont des murs au départ.
+
+
+        self.infos = 1111030 # CS 04022025 Données d'information sur la cellule
+                            # NESOPCA avec:
+                            #   N: Nord     (Default: 1) Si la valeur est 1 alors on a un mur au nord et 0 dans le cas contraire. Si on est déjà passé par ce mur la valeur est 2.
+                            #   E: Est      (Default: 1) Si la valeur est 1 alors on a un mur au nord et 0 dans le cas contraire. Si on est déjà passé par ce mur la valeur est 2.
+                            #   S: Sud      (Default: 1) Si la valeur est 1 alors on a un mur au nord et 0 dans le cas contraire. Si on est déjà passé par ce mur la valeur est 2.
+                            #   O: Ouest    (Default: 1) Si la valeur est 1 alors on a un mur au nord et 0 dans le cas contraire. Si on est déjà passé par ce mur la valeur est 2.
+                            #   P: Passage  (Default: 0) Si la valeur est 1 alors on est déjà passé sur cette case
+                            #   C: Chance   (Default: 3) Nombre de déplacement possibles non explorés. Au maximum on peut avoir 3 déplacements possibles, il faut au moins 1 mur.
+                            #   A: Variable (Default: 0) Variable de test
+
 
     def has_all_walls(self):
         """Vérifie si la cellule possède encore tous ses murs (n'est pas encore connectée à d'autres)."""
@@ -61,7 +73,7 @@ class Maze:
         side = random.choice(['N', 'S', 'E', 'W'])
         cordx = 0
         cordy = 0
-        
+
         if side == 'N':  # Sortie au nord
             x = random.randint(1, self.nx - 1)
             self.cell_at(x, 0).walls['N'] = False  # Ouvrir le mur du nord pour une cellule sur le bord nord
@@ -78,11 +90,11 @@ class Maze:
             cordx = self.nx - 1
             cordy = y
         elif side == 'W':  # Sortie à l'ouest
-            y = random.randint(0, self.ny - 1)
+            y = random.randint(1, self.ny - 1)
             self.cell_at(0, y).walls['W'] = False  # Ouvrir le mur de l'ouest pour une cellule sur le bord ouest
             cordx = 0
             cordy = y
-        
+
 
         self.exitx=cordx
         self.exity=cordy
@@ -153,7 +165,7 @@ class Maze:
 
 
 
-            # Dessin des murs sud et est.
+            # Dessin des murs sud et est. et ouest et nord
             for x in range(self.nx):
                 for y in range(self.ny):
                     if self.cell_at(x, y).walls['S']:
@@ -162,17 +174,17 @@ class Maze:
                     if self.cell_at(x, y).walls['E']:
                         x1, y1, x2, y2 = (x + 1) * scx, y * scy, (x + 1) * scx, (y + 1) * scy
                         write_wall(f, x1, y1, x2, y2)
-                        
+
                     if self.cell_at(x, y).walls['W']:
                         x1, y1, x2, y2 = x *scx, y *scy, x * scx, (y + 1) * scy
                         write_wall(f, x1, y1, x2, y2)
-                    
+
                     if self.cell_at(x, y).walls['N']:
                         x1, y1, x2, y2 = x * scx, y * scy, (x + 1) * scx, y *scy
                         write_wall(f, x1, y1, x2, y2)
 
 
-            # ce programme pour les murs N et W ne marchent pas avec la sortie
+            # ce programme pour les murs N et W ne marche pas avec la sortie trouvée
             # Ajout des murs nord et ouest du bord du labyrinthe.
             #print('<line x1="0" y1="0" x2="{}" y2="0"/>'.format(width), file=f)
             #print('<line x1="0" y1="0" x2="0" y2="{}"/>'.format(height), file=f)
@@ -214,12 +226,19 @@ class Maze:
             cell_stack.append(current_cell)
             current_cell = next_cell
             nv += 1
-            
-            
+
+
     def find_exit(self):
-        liste_cases = []
-        
+        xcase, ycase = self.ix, self.iy
+        liste_cases_explorées = []
+        for x in range(self.nx) :
+            for y in range(self.ny) :
+                liste_cases_explorées.append(self.cell_at(x, y))
+
+
         # proceder par éliminations!!!
+
+
 
 from df_maze import Maze
 
@@ -243,7 +262,6 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 print("Répertoire courant :", os.getcwd())
 
 maze.write_svg('maze.svg')
-
 
 
 
