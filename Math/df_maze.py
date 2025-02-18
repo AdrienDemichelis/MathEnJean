@@ -3,6 +3,7 @@
 
 #MODIFS : PLUS DE CASE DE DEPART AU 0, 0 MTN CEST 1, 0 OU 0, 1 AU MOINS
 #MODIFS : IL Y A MTN DES SORTIES SUR LES COTES OUEST ET NORD
+#MODIFS : DÉBUT D'UNE FONCTION EXPLORATEUR DU LABYRINTHE
 
 import random
 import os
@@ -28,15 +29,23 @@ class Cell:
         self.walls = {'N': True, 'S': True, 'E': True, 'W': True}  # Toutes les directions ont des murs au départ.
 
 
-        self.infos = 1111030 # CS 04022025 Données d'information sur la cellule
+
+
+        self.infos = [1, 1, 1, 1, 1, 1, 0, 3, 0] # CS 04022025 Données d'information sur la cellule
                             # NESOPCA avec:
                             #   N: Nord     (Default: 1) Si la valeur est 1 alors on a un mur au nord et 0 dans le cas contraire. Si on est déjà passé par ce mur la valeur est 2.
-                            #   E: Est      (Default: 1) Si la valeur est 1 alors on a un mur au nord et 0 dans le cas contraire. Si on est déjà passé par ce mur la valeur est 2.
-                            #   S: Sud      (Default: 1) Si la valeur est 1 alors on a un mur au nord et 0 dans le cas contraire. Si on est déjà passé par ce mur la valeur est 2.
-                            #   O: Ouest    (Default: 1) Si la valeur est 1 alors on a un mur au nord et 0 dans le cas contraire. Si on est déjà passé par ce mur la valeur est 2.
+                            #   E: Est      (Default: 1) Si la valeur est 1 alors on a un mur à l'est et 0 dans le cas contraire. Si on est déjà passé par ce mur la valeur est 2.
+                            #   S: Sud      (Default: 1) Si la valeur est 1 alors on a un mur au sud et 0 dans le cas contraire. Si on est déjà passé par ce mur la valeur est 2.
+                            #   O: Ouest    (Default: 0) Si la valeur est 1 alors on a un mur à l'ouest et 0 dans le cas contraire. Si on est déjà passé par ce mur la valeur est 2.
+                            #   Coordonnée: x (Default: 1)
+                            #   Coordonnée: y (Default: 1)
                             #   P: Passage  (Default: 0) Si la valeur est 1 alors on est déjà passé sur cette case
                             #   C: Chance   (Default: 3) Nombre de déplacement possibles non explorés. Au maximum on peut avoir 3 déplacements possibles, il faut au moins 1 mur.
                             #   A: Variable (Default: 0) Variable de test
+
+
+
+
 
 
     def has_all_walls(self):
@@ -228,14 +237,40 @@ class Maze:
             nv += 1
 
 
+
+    def get_infos(self, x, y):
+
+
+        if self.cell_at(x, y).walls['N'] == True :
+            self.infos[0] = 1
+        else :
+            self.infos[0] = 0
+        if self.cell_at(x, y).walls['E'] == True :
+            self.infos[1] = 1
+        else :
+            self.infos[1] = 0
+        if self.cell_at(x, y).walls['S'] == True :
+            self.infos[2] = 1
+        else :
+            self.infos[2] = 0
+        if self.cell_at(x, y).walls['W'] == True :
+            self.infos[3] = 1
+        else :
+            self.infos[3] = 0
+
+        self.infos[4] = x
+        self.infos[5] = y
+
+
+
     def find_exit(self):
-        xcase, ycase = self.ix, self.iy
-        liste_cases_explorées = []
+        self.cells_infos = []
         for x in range(self.nx) :
             for y in range(self.ny) :
-                liste_cases_explorées.append(self.cell_at(x, y))
+                cells_infos.append(self.cell_at(x, y).infos)
 
 
+        return cells_infos
         # proceder par éliminations!!!
 
 
@@ -255,6 +290,11 @@ cox, coy = maze.open_exit()
 print(cox, coy)
 
 
+
+list_cases = maze.find_exit()
+print(list_cases)
+
+
 print(maze)
 
 # Change le répertoire courant pour correspondre au dossier contenant le script
@@ -262,6 +302,4 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 print("Répertoire courant :", os.getcwd())
 
 maze.write_svg('maze.svg')
-
-
 
