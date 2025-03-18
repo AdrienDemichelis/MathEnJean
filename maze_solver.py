@@ -2,7 +2,7 @@
 
 
 import os
-from df_maze import Maze, Cell
+from df_maze import Maze
 import copy
 
 
@@ -37,22 +37,32 @@ directions = [('W', (-1, 0)), ('E', (1, 0)), ('S', (0, 1)), ('N', (0, -1))]
 
 while True:
     for exit, (dx, dy) in directions:
-        if len(stack) != 1:
-            if current_cell.walls[exit] == False and current_cell.wall_pairs[exit] != stack[-1].wall_pairs[exit]: # check si il y a un mur dans cette direction et si le mur opposé de la cellule d'avant est le meme (cad pour eviter de faire des aller retours)
-                current_cell.walls[exit] = True # on met un mur pour ne plus revenir dans cette direction si elle ne marche pas
-                current_cell = maze.cell_at(current_cell.x + dx, current_cell.y + dy) #current_cell devient la cellule d'apres
-                stack.append(current_cell)
-                print(current_cell.x, current_cell.y, current_cell.walls) # donne la liste des murs
-                break
+        if len(stack) != 1: 
+            if current_cell.walls[exit] == False:
+                    current_cell.walls[exit] = True # on met un mur pour ne plus revenir dans cette direction si elle ne marche pas
+                    if current_cell.x + dx == nx or current_cell.y + dy == ny:
+                        print('finished')
+                        exit()
+                    current_cell = maze.cell_at(current_cell.x + dx, current_cell.y + dy) #current_cell devient la cellule d'apres
+                    current_cell.walls[current_cell.wall_pairs[exit]]
+                    print('going', exit, current_cell.x, current_cell.y)
+                    stack.append(current_cell)
+                    print(current_cell.x, current_cell.y, current_cell.walls) # donne la liste des murs de la cellule dans laquelle on se trouve
+                    break
         else:
-            if current_cell.walls[exit] == False: # check si il y a un mur dans cette direction 
-                current_cell.walls[exit] = True # on met un mur pour ne plus revenir dans cette direction si elle ne marche pas
-                current_cell = maze.cell_at(current_cell.x + dx, current_cell.y + dy) #current_cell devient la cellule d'apres
-                print('going', current_cell.x, current_cell.y)
-                stack.append(current_cell)
-                print(current_cell.x, current_cell.y, current_cell.walls) # donne la liste des murs
-                break
-    
+            if current_cell.walls[exit] == False:
+                    current_cell.walls[exit] = True # on met un mur pour ne plus revenir dans cette direction si elle ne marche pas
+                    current_cell = maze.cell_at(current_cell.x + dx, current_cell.y + dy) #current_cell devient la cellule d'apres
+                    current_cell.walls[current_cell.wall_pairs[exit]]
+                    print('going', exit, current_cell.x, current_cell.y)
+                    stack.append(current_cell)
+                    print(current_cell.x, current_cell.y, current_cell.walls) # donne la liste des murs
+                    break
+    if current_cell.has_all_walls() == True:
+        print(current_cell.x, current_cell.y, current_cell.walls) # donne la liste des murs
+        current_cell = stack.pop()
+
+
 
 
 
